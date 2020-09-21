@@ -63,7 +63,10 @@ class DBSession:
         return self.tasks[uuid_]
     
     def replace_task(self, uuid_, item):
-        self.tasks[uuid_] = item
+        if (uuid_ in self.tasks):
+            self.tasks[uuid_] = item
+        else:
+            return "ID not found"
 
     def alter_task(self, uuid_, item):
         update_data = item.dict(exclude_unset=True)
@@ -125,7 +128,8 @@ async def read_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
 )
 async def replace_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_db)):
     try:
-        db.replace_task(uuid, item)
+        if db.replace_task(uuid_, item) == "ID not found":
+            raise HTTPException(status_code=404,detail='ID not found')
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -141,7 +145,7 @@ async def replace_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get
 )
 async def alter_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_db)):
     try:
-        db.alter_task(uuid, item)
+        db.alter_task(uuid_, item)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -157,9 +161,9 @@ async def alter_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_d
 )
 async def remove_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
     try:
-        db.remove_task(uuid)
+        db.remove_task(uuid_)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
             detail='Task not found',
-        ) from exception
+        ) from exception 
