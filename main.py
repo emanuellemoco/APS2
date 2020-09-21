@@ -98,7 +98,11 @@ async def read_task(uuid_: uuid.UUID):
 )
 async def replace_task(uuid_: uuid.UUID, item: Task):
     try:
-        tasks[uuid_] = item
+        if uuid_ in tasks:
+            tasks[uuid_] = item
+        else:
+            raise HTTPException(status_code=404, detail='ID not found',
+        ) 
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
