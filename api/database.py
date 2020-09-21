@@ -22,7 +22,10 @@ class DBSession:
         return self.tasks[uuid_]
     
     def replace_task(self, uuid_, item):
-        self.tasks[uuid_] = item
+        if (uuid_ in self.tasks):
+            self.tasks[uuid_] = item
+        else:
+            return "ID not found"
 
     def alter_task(self, uuid_, item):
         update_data = item.dict(exclude_unset=True)
