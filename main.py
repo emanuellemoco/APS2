@@ -45,6 +45,33 @@ class DBSession:
     tasks = {}
     def __init__(self):
         self.tasks = DBSession.tasks
+    
+    def read_tasks(self, completed):
+        if completed is None:
+            return self.tasks
+        return {
+            uuid_: item
+            for uuid_, item in self.tasks.items() if item.completed == completed
+    }
+
+    def create_task(self, item):
+        uuid_ = uuid.uuid4()
+        self.tasks[uuid_] = item
+        return uuid_
+    
+    def read_task(self, uuid_):
+        return self.tasks[uuid_]
+    
+    def replace_task(self, uuid_, item):
+        self.tasks[uuid_] = item
+
+    def alter_task(self, uuid_, item):
+        update_data = item.dict(exclude_unset=True)
+        self.tasks[uuid_] = self.tasks[uuid_].copy(update=update_data)
+    
+    def remove_task(self, uuid_):
+        del self.tasks[uuid_]
+
 
 def get_db():
     return DBSession()
@@ -58,12 +85,8 @@ def get_db():
     response_model=Dict[uuid.UUID, Task],
 )
 async def read_tasks(completed: bool = None, db: DBSession = Depends(get_db)):
-    if completed is None:
-        return db.tasks
-    return {
-        uuid_: item
-        for uuid_, item in db.tasks.items() if item.completed == completed
-    }
+    return db.read_tasks(completed)
+
 
 
 @app.post(
@@ -74,9 +97,7 @@ async def read_tasks(completed: bool = None, db: DBSession = Depends(get_db)):
     response_model=uuid.UUID,
 )
 async def create_task(item: Task, db: DBSession = Depends(get_db)):
-    uuid_ = uuid.uuid4()
-    db.tasks[uuid_] = item
-    return uuid_
+    return db.create_task(item)
 
 
 @app.get(
@@ -88,7 +109,7 @@ async def create_task(item: Task, db: DBSession = Depends(get_db)):
 )
 async def read_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
     try:
-        return db.tasks[uuid_]
+        return db.read_task(uuid_)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -104,7 +125,7 @@ async def read_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
 )
 async def replace_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_db)):
     try:
-        db.tasks[uuid_] = item
+        db.replace_task(uuid, item)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -120,8 +141,7 @@ async def replace_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get
 )
 async def alter_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_db)):
     try:
-        update_data = item.dict(exclude_unset=True)
-        db.tasks[uuid_] = db.tasks[uuid_].copy(update=update_data)
+        db.alter_task(uuid, item)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -137,7 +157,7 @@ async def alter_task(uuid_: uuid.UUID, item: Task, db: DBSession = Depends(get_d
 )
 async def remove_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
     try:
-        del db.tasks[uuid_]
+        db.remove_task(uuid)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
