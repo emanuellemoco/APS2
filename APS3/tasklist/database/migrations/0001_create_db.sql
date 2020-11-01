@@ -13,5 +13,6 @@ CREATE TABLE tasks (
     CONSTRAINT fk_user
     FOREIGN KEY (username)
     REFERENCES users (username)
+    ON UPDATE CASCADE
     ON DELETE CASCADE
 );

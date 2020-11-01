@@ -20,14 +20,16 @@ from .models import User
 # Atualizar         ok
 # Remover usuário.  ok
 
-#• Modificar as tarefas para adicionar o usuário responsável pela tarefa.
+#• Modificar as tarefas para adicionar o usuário responsável pela tarefa.   OK
 
     
 # replace_user 
-    #Temos que checar o new username se ele ja existe no DB
+    #Temos que checar o new username se ele ja existe no DB                 OK
 
 # create_user
-    #try except de qdo o username ja existir no db
+    #try except de qdo o username ja existir no db                          OK
+
+#Arrumar erro do create_new_task quando USername não existe                 OK
 
 
 class DBSession:
@@ -37,6 +39,8 @@ class DBSession:
 
     def create_user(self, user: User):
         
+        if self.__user_exists(user.username):
+            raise ValueError()
         query = "INSERT INTO users (username) VALUES (%s)"
         value = user.username
         with self.connection.cursor() as cursor:
@@ -62,7 +66,8 @@ class DBSession:
         #Temos que checar tanto mo old username e o novo para ver se ele ja existe no DB
         if not self.__user_exists(old):
             raise KeyError()
-
+        if self.__user_exists(user.username):
+            raise ValueError()
         with self.connection.cursor() as cursor:
             cursor.execute(
                 '''
@@ -111,6 +116,10 @@ class DBSession:
         }
 
     def read_user_tasks(self,username : str, completed: bool = None):
+        
+        if not self.__user_exists(username):
+            raise KeyError()
+
         query = '''SELECT BIN_TO_UUID(uuid), description, completed, username FROM tasks 
                     WHERE username = %s'''
         if completed is not None:
@@ -136,6 +145,9 @@ class DBSession:
 
     def create_user_task(self, item: Task):
         uuid_ = uuid.uuid4()
+        
+        if not self.__user_exists(item.username):
+            raise KeyError()
 
         with self.connection.cursor() as cursor:
             cursor.execute(
@@ -193,6 +205,21 @@ class DBSession:
             cursor.execute('DELETE FROM tasks')
         self.connection.commit()
     
+
+    def remove_user_tasks(self, username):
+
+        if not self.__task_exists(username):
+            raise KeyError()
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                'DELETE FROM tasks WHERE username=%s',
+                (username, ),
+                )
+            
+        self.connection.commit()
+
+
     def __task_exists(self, uuid_: uuid.UUID):
         with self.connection.cursor() as cursor:
             cursor.execute(

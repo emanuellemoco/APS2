@@ -13,6 +13,8 @@ app.dependency_overrides[utils.get_config_filename] = \
     utils.get_config_test_filename
 
 
+
+
 def setup_database():
     scripts_dir = os.path.join(
         os.path.dirname(__file__),
@@ -43,8 +45,6 @@ def test_read_tasks_with_no_task():
 def test_create_and_read_some_tasks():
     setup_database()
     
-    response = client.get("/user",json={})
-    assert response.status_code == 200
     #Criando usuario
     user = {
         "username" : "lllllllllllllllllllll"

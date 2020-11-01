@@ -29,7 +29,14 @@ async def read_tasks(db: DBSession = Depends(get_db)):
     response_model=User,
 )
 async def create_user( user : User, db: DBSession = Depends(get_db)):
-    return db.create_user(user)
+    try:
+        return db.create_user(user)
+    
+    except ValueError as exception:
+        raise HTTPException(
+            status_code=409,
+            detail='Username not available',
+        ) from exception
 
 
 @router.put(
@@ -47,7 +54,12 @@ async def replace_task(
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
-            detail='Task not found',
+            detail='User not found',
+        ) from exception
+    except ValueError as exception:
+        raise HTTPException(
+            status_code=409,
+            detail='New username not available',
         ) from exception
 
 
@@ -67,9 +79,13 @@ async def replace_task(
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
-            detail='Task not found',
+            detail='User not found',
         ) from exception
-
+    except ValueError as exception:
+        raise HTTPException(
+            status_code=409,
+            detail='New username not available',
+        ) from exception
     
 @router.delete(
     '/{username}',
