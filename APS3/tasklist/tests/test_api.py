@@ -47,7 +47,7 @@ def test_create_and_read_some_tasks():
     
     #Criando usuario
     user = {
-        "username" : "lllllllllllllllllllll"
+        "username" : "uwu"
     }
     response = client.post("/user", json=user)
     assert response.status_code == 200
@@ -67,13 +67,16 @@ def test_create_and_read_some_tasks():
             "username" : "uwu"
         },
         {
-            "description": "baz"
+            "description": "baz",
+            "username" : "uwu"
         },
         {
             "completed": True,
             "username" : "uwu"
         },
-        {},
+        {
+            "username" : "uwu"
+        },
     ]
     expected_responses = [
         {
@@ -142,14 +145,19 @@ def test_create_and_read_some_tasks():
 def test_substitute_task():
     setup_database()
 
+    #Criando usuario
+    user = { "username" : "uwu" }
+    response = client.post("/user", json=user)
+    assert response.status_code == 200
+
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'username': 'uwu'}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
 
     # Replace the task.
-    new_task = {'description': 'bar', 'completed': True}
+    new_task = {'description': 'bar', 'completed': True, 'username' : 'uwu'}
     response = client.put(f'/task/{uuid_}', json=new_task)
     assert response.status_code == 200
 
@@ -166,8 +174,13 @@ def test_substitute_task():
 def test_alter_task():
     setup_database()
 
+    #Criando usuario
+    user = { "username" : "uwu"}
+    response = client.post("/user", json=user)
+    assert response.status_code == 200
+
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'username': 'uwu'}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
@@ -218,8 +231,13 @@ def test_delete_nonexistant_task():
 def test_delete_all_tasks():
     setup_database()
 
+    #Criando usuario
+    user = { "username" : "uwu"}
+    response = client.post("/user", json=user)
+    assert response.status_code == 200
+    
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'username' : 'uwu'}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
