@@ -5,6 +5,23 @@ from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
 
 # pylint: disable=too-few-public-methods
+
+class User(BaseModel):
+    username: str = Field(
+        title='Username',
+        max_length=20,
+    )
+
+    class Config:
+        schema_extra = {
+            'example': {
+                'username': 'pessoa1',
+            }
+        }
+
+
+
+
 class Task(BaseModel):
     description: Optional[str] = Field(
         'no description',

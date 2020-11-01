@@ -11,11 +11,69 @@ from fastapi import Depends
 from utils.utils import get_config_filename, get_app_secrets_filename
 
 from .models import Task
+from .models import User
+
+#Atividade
+
+# Criar             ok
+# Ler               ok
+# Atualizar         ok
+# Remover usuário.
+#  Não precisa de senha, este projeto é só um exercício.
+#• Modificar as tarefas para adicionar o usuário responsável pela tarefa.
+
+
+# replace_user 
+    #Temos que checar o new username se ele ja existe no DB
+
+# create_user
+    #try except de qdo o username ja existir no db
 
 
 class DBSession:
     def __init__(self, connection: conn.MySQLConnection):
         self.connection = connection
+
+
+    def create_user(self, user: User):
+        
+        query = "INSERT INTO users (username) VALUES (%s)"
+        value = user.username
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, (value,))
+        self.connection.commit()
+
+        #fazer o try e except para quando o usuario ja existir no DB
+        return {"username" : user.username}
+
+    def read_users(self):
+        query = 'SELECT * FROM users'
+ 
+        with self.connection.cursor() as cursor:
+            cursor.execute(query)
+            db_results = cursor.fetchall()
+
+        # #return {username : str for username in db_results}   
+        return {username[0]  for username in db_results}
+
+
+    def replace_user(self, old, user: User):
+        
+        #Temos que checar tanto mo old username e o novo para ver se ele ja existe no DB
+        if not self.__user_exists(old):
+            raise KeyError()
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                '''
+                UPDATE users SET username=%s
+                WHERE username=(%s)
+                ''',
+                (user.username , old),
+            )
+        self.connection.commit()
+
+        
 
     def read_tasks(self, completed: bool = None):
         query = 'SELECT BIN_TO_UUID(uuid), description, completed FROM tasks'
@@ -96,7 +154,7 @@ class DBSession:
         with self.connection.cursor() as cursor:
             cursor.execute('DELETE FROM tasks')
         self.connection.commit()
-
+    
     def __task_exists(self, uuid_: uuid.UUID):
         with self.connection.cursor() as cursor:
             cursor.execute(
@@ -106,6 +164,21 @@ class DBSession:
                 )
                 ''',
                 (str(uuid_), ),
+            )
+            results = cursor.fetchone()
+            found = bool(results[0])
+
+        return found
+
+    def __user_exists(self, user: str):
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                '''
+                SELECT EXISTS(
+                    SELECT 1 FROM users WHERE username=(%s)
+                )
+                ''',
+                (user, ),
             )
             results = cursor.fetchone()
             found = bool(results[0])

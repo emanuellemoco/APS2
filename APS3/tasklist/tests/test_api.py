@@ -25,6 +25,7 @@ def setup_database():
     utils.run_all_scripts(scripts_dir, config_file_name, secrets_file_name)
 
 
+
 def test_read_main_returns_not_found():
     setup_database()
     response = client.get('/')
@@ -41,43 +42,62 @@ def test_read_tasks_with_no_task():
 
 def test_create_and_read_some_tasks():
     setup_database()
+
+    #Criando usuario
+    user = {
+        "username" : "uwu"
+    }
+    response = client.post("/user", json=user)
+    assert response.status_code == 200
+
+
+
+
     tasks = [
         {
             "description": "foo",
-            "completed": False
+            "completed": False,
+            "username" : "uwu"
         },
         {
             "description": "bar",
-            "completed": True
+            "completed": True,
+            "username" : "uwu"
         },
         {
             "description": "baz"
         },
         {
-            "completed": True
+            "completed": True,
+            "username" : "uwu"
         },
         {},
     ]
     expected_responses = [
         {
             'description': 'foo',
-            'completed': False
+            'completed': False,
+            "username" : "uwu"
         },
         {
             'description': 'bar',
-            'completed': True
+            'completed': True,
+            "username" : "uwu"
         },
         {
             'description': 'baz',
-            'completed': False
+            'completed': False,
+            "username" : "uwu"
         },
         {
             'description': 'no description',
-            'completed': True
+            'completed': True,
+            "username" : "uwu"
         },
         {
             'description': 'no description',
-            'completed': False
+            'completed': False,
+            "username" : "uwu"
         },
     ]
 
