@@ -103,3 +103,14 @@ async def remove_task(
             status_code=404,
             detail='User not found',
         ) from exception
+
+@router.delete(
+    '',
+    summary='Deletes all users',
+    description='Deletes all user',
+)
+async def remove_all_users(        
+        db: DBSession = Depends(get_db),
+):
+    return db.remove_all_users()
+

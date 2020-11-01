@@ -255,3 +255,170 @@ def test_delete_all_tasks():
     response = client.get('/task')
     assert response.status_code == 200
     assert response.json() == {}
+
+
+def test_create_and_read_some_users():
+    setup_database()
+    users = [ 'leo', 'manu', 'aa']
+
+    # Adicionando usuarios
+    for user in users:
+        response = client.post('/user', json = {'username': user})
+        assert response.status_code == 200
+    
+    #Lendo todos usuarios
+    response = client.get('/user')
+    
+    for user in users:
+        assert user in response.json() 
+
+
+
+def test_alter_user():
+    setup_database()
+    
+    #Criando usuario
+    user = {"username" : "uwu"}
+    response = client.post("/user", json=user)
+    
+    #Replace the user
+    new_user = {"username" : "manu"}
+    response = client.patch(f"/user/{user['username']}", json=new_user)
+    assert response.status_code == 200
+
+    # Check whether the user was altered.
+    response = client.get('/user')
+    assert new_user['username'] in response.json()
+
+
+    
+    
+
+def test_read_user_tasks():
+    setup_database()
+    
+    #Criando usuario
+    user = {"username" : "uwu"}
+    response = client.post("/user", json=user)
+    assert response.status_code == 200
+
+    user2 = {"username" : "manu"}
+    response = client.post("/user", json=user2)
+    assert response.status_code == 200
+
+    
+    
+    tasks = [
+        {
+            'description': 'foo',
+            'completed': False,
+            "username" : "uwu"
+        },
+        {
+            'description': 'bar',
+            'completed': True,
+            "username" : "uwu"
+        },
+        {
+            'description': 'baz',
+            'completed': False,
+            "username" : "uwu"
+        },
+        {
+            'description': 'no description',
+            'completed': True,
+            "username" : "uwu"
+        },
+        {
+            'description': 'no description',
+            'completed': False,
+            "username" : "uwu"
+        },
+        {
+            'description': 'no description',
+            'completed': False,
+            "username" : "manu"
+        },
+    ]
+
+    expected_results = [
+        {
+            'description': 'foo',
+            'completed': False,
+            "username" : "uwu"
+        },
+        {
+            'description': 'bar',
+            'completed': True,
+            "username" : "uwu"
+        },
+        {
+            'description': 'baz',
+            'completed': False,
+            "username" : "uwu"
+        },
+        {
+            'description': 'no description',
+            'completed': True,
+            "username" : "uwu"
+        },
+        {
+            'description': 'no description',
+            'completed': False,
+            "username" : "uwu"
+        },
+    ]
+    for task in tasks:
+        response = client.post('/task', json=task)
+        assert response.status_code == 200
+    
+    #Lendo as tasks de um user específico
+    response = client.get(f"/task/user/{user['username']}")
+    assert response.status_code == 200
+
+    for task in  response.json().values():
+        assert task in expected_results
+
+
+        
+
+def test_delete_invalid_user():
+    setup_database()
+
+    #Delete the user
+    response = client.delete(f"/user/kdjishj")
+    assert response.status_code == 404
+
+
+def test_delete_user():
+    setup_database()
+
+    #Criando usuario
+    user = {"username" : "uwu"}
+    response = client.post("/user", json=user)
+
+    #Delete the user
+    response = client.delete(f"/user/{user['username']}")
+    assert response.status_code == 200
+
+    # Check whether the user was deleted.
+    response = client.get('/user')
+    assert user['username'] not in response.json()
+
+    
+
+def test_delete_all_users():
+    setup_database()
+    users = [ 'leo', 'manu', 'aa']
+
+    # Adicionando usuarios
+    for user in users:
+        response = client.post('/user', json = {'username': user})
+        assert response.status_code == 200
+            
+    #Apagando todos os uduarios
+    response = client.delete('/user')
+
+    assert response.json() == None
+
+

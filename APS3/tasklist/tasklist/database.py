@@ -57,7 +57,6 @@ class DBSession:
             cursor.execute(query)
             db_results = cursor.fetchall()
 
-        # #return {username : str for username in db_results}   
         return {username[0]  for username in db_results}
 
 
@@ -88,6 +87,14 @@ class DBSession:
                 'DELETE FROM users WHERE username=(%s)',
                 (username, ),
             )
+        self.connection.commit()
+
+
+
+    def remove_all_users(self):
+
+        with self.connection.cursor() as cursor:
+            cursor.execute('DELETE FROM users')
         self.connection.commit()
 
 
@@ -207,8 +214,7 @@ class DBSession:
     
 
     def remove_user_tasks(self, username):
-
-        if not self.__task_exists(username):
+        if not self.__user_exists(username):
             raise KeyError()
 
         with self.connection.cursor() as cursor:
