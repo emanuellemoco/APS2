@@ -42,10 +42,12 @@ def test_read_tasks_with_no_task():
 
 def test_create_and_read_some_tasks():
     setup_database()
-
+    
+    response = client.get("/user",json={})
+    assert response.status_code == 200
     #Criando usuario
     user = {
-        "username" : "uwu"
+        "username" : "lllllllllllllllllllll"
     }
     response = client.post("/user", json=user)
     assert response.status_code == 200

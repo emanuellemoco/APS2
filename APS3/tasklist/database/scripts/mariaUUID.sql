@@ -2,6 +2,8 @@
 -- Funcao BIN_TO_UUID nao funciona no MariaDb
 -- https://gist.github.com/jamesgmarks/56502e46e29a9576b0f5afea3a0f595c
 
+DROP FUNCTION IF EXISTS BIN_TO_UUID;
+DROP FUNCTION IF EXISTS UUID_TO_BIN;
 
 DELIMITER //
 

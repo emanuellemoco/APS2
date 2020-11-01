@@ -18,11 +18,11 @@ from .models import User
 # Criar             ok
 # Ler               ok
 # Atualizar         ok
-# Remover usuário.
-#  Não precisa de senha, este projeto é só um exercício.
+# Remover usuário.  ok
+
 #• Modificar as tarefas para adicionar o usuário responsável pela tarefa.
 
-
+    
 # replace_user 
     #Temos que checar o new username se ele ja existe no DB
 
@@ -73,10 +73,23 @@ class DBSession:
             )
         self.connection.commit()
 
+
+    def remove_user(self, username):
+        if not self.__user_exists(username):
+            raise KeyError()
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                'DELETE FROM users WHERE username=(%s)',
+                (username, ),
+            )
+        self.connection.commit()
+
+
         
 
-    def read_tasks(self, completed: bool = None):
-        query = 'SELECT BIN_TO_UUID(uuid), description, completed FROM tasks'
+    def read_all_tasks(self, completed: bool = None):
+        query = 'SELECT BIN_TO_UUID(uuid), description, completed, username FROM tasks'
         if completed is not None:
             query += ' WHERE completed = '
             if completed:
@@ -90,19 +103,44 @@ class DBSession:
 
         return {
             uuid_: Task(
+                username=field_username,
                 description=field_description,
                 completed=bool(field_completed),
             )
-            for uuid_, field_description, field_completed in db_results
+            for uuid_, field_description, field_completed, field_username in db_results
         }
 
-    def create_task(self, item: Task):
+    def read_user_tasks(self,username : str, completed: bool = None):
+        query = '''SELECT BIN_TO_UUID(uuid), description, completed, username FROM tasks 
+                    WHERE username = %s'''
+        if completed is not None:
+            query += ' AND completed = '
+            if completed:
+                query += 'True'
+            else:
+                query += 'False'
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, (username,))
+
+            db_results = cursor.fetchall()
+
+        return {
+            uuid_: Task(
+                username=field_username,
+                description=field_description,
+                completed=bool(field_completed),
+            )
+            for uuid_, field_description, field_completed, field_username  in db_results
+        }
+
+    def create_user_task(self, item: Task):
         uuid_ = uuid.uuid4()
 
         with self.connection.cursor() as cursor:
             cursor.execute(
-                'INSERT INTO tasks VALUES (UUID_TO_BIN(%s), %s, %s)',
-                (str(uuid_), item.description, item.completed),
+                'INSERT INTO tasks VALUES (UUID_TO_BIN(%s), %s, %s, %s)',
+                (str(uuid_), item.description, item.completed, item.username),
             )
         self.connection.commit()
 
@@ -115,7 +153,7 @@ class DBSession:
         with self.connection.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT description, completed
+                SELECT description, completed, username
                 FROM tasks
                 WHERE uuid = UUID_TO_BIN(%s)
                 ''',
@@ -123,7 +161,7 @@ class DBSession:
             )
             result = cursor.fetchone()
 
-        return Task(description=result[0], completed=bool(result[1]))
+        return Task(description=result[0], completed=bool(result[1]), username=result[2])
 
     def replace_task(self, uuid_, item):
         if not self.__task_exists(uuid_):

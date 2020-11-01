@@ -69,3 +69,21 @@ async def replace_task(
             status_code=404,
             detail='Task not found',
         ) from exception
+
+    
+@router.delete(
+    '/{username}',
+    summary='Deletes user',
+    description='Deletes an user identified by its username',
+)
+async def remove_task(        
+        username: str,
+        db: DBSession = Depends(get_db),
+):
+    try:
+        db.remove_user(username)
+    except KeyError as exception:
+        raise HTTPException(
+            status_code=404,
+            detail='User not found',
+        ) from exception

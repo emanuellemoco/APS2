@@ -23,6 +23,12 @@ class User(BaseModel):
 
 
 class Task(BaseModel):
+
+    username: str = Field(
+        'username',
+        title='Username',
+        max_length = 20,
+    )
     description: Optional[str] = Field(
         'no description',
         title='Task description',
@@ -36,6 +42,7 @@ class Task(BaseModel):
     class Config:
         schema_extra = {
             'example': {
+                'username': 'pessoa1',
                 'description': 'Buy baby diapers',
                 'completed': False,
             }

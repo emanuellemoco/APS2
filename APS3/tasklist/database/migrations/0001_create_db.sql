@@ -9,6 +9,9 @@ CREATE TABLE tasks (
     uuid BINARY(16) PRIMARY KEY,
     description NVARCHAR(1024),
     completed BOOLEAN,
-    username NVARCHAR(20) REFERENCES users(username) 
+    username NVARCHAR(20),
+    CONSTRAINT fk_user
+    FOREIGN KEY (username)
+    REFERENCES users (username)
+    ON DELETE CASCADE
 );
-

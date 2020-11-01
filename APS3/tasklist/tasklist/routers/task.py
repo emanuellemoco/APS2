@@ -6,64 +6,44 @@ from typing import Dict
 from fastapi import APIRouter, HTTPException, Depends
 
 from ..database import DBSession, get_db
-from ..models import Task
+from ..models import User
 
 router = APIRouter()
 
 
 
-
-
-
-
 @router.get(
     '',
-    summary='Reads task list',
-    description='Reads the whole task list.',
-    response_model=Dict[uuid.UUID, Task],
+    summary='Reads user list',
+    description='Reads the whole user list.',
+    response_model= list,
 )
-async def read_tasks(completed: bool = None, db: DBSession = Depends(get_db)):
-    return db.read_tasks(completed)
+async def read_tasks(db: DBSession = Depends(get_db)):
+    return db.read_users()
 
 
 @router.post(
     '',
-    summary='Creates a new task',
-    description='Creates a new task and returns its UUID.',
-    response_model=uuid.UUID,
+    summary='Creates a new user',
+    description='Creates a new user and return its user ',
+    response_model=User,
 )
-async def create_task(item: Task, db: DBSession = Depends(get_db)):
-    return db.create_task(item)
-
-
-@router.get(
-    '/{uuid_}',
-    summary='Reads task',
-    description='Reads task from UUID.',
-    response_model=Task,
-)
-async def read_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
-    try:
-        return db.read_task(uuid_)
-    except KeyError as exception:
-        raise HTTPException(
-            status_code=404,
-            detail='Task not found',
-        ) from exception
+async def create_user( user : User, db: DBSession = Depends(get_db)):
+    return db.create_user(user)
 
 
 @router.put(
-    '/{uuid_}',
-    summary='Replaces a task',
-    description='Replaces a task identified by its UUID.',
+    '/{username}',
+    summary='Replaces an user',
+    description='Replaces an user identified by its username.',
 )
 async def replace_task(
-        uuid_: uuid.UUID,
-        item: Task,
+        username: str,
+        user: User,
         db: DBSession = Depends(get_db),
 ):
     try:
-        db.replace_task(uuid_, item)
+        db.replace_user(username, user)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -71,47 +51,39 @@ async def replace_task(
         ) from exception
 
 
+#Qual a diferença entre o patch e o put nesse caso?
 @router.patch(
-    '/{uuid_}',
-    summary='Alters task',
-    description='Alters a task identified by its UUID',
+    '/{username}',
+    summary='Alters an user',
+    description='Alters an user identified by its username.',
 )
-async def alter_task(
-        uuid_: uuid.UUID,
-        item: Task,
+async def replace_task(
+        username: str,
+        user: User,
         db: DBSession = Depends(get_db),
 ):
     try:
-        old_item = db.read_task(uuid_)
-        update_data = item.dict(exclude_unset=True)
-        new_item = old_item.copy(update=update_data)
-        db.replace_task(uuid_, new_item)
+        db.replace_user(username, user)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
             detail='Task not found',
         ) from exception
 
-
+    
 @router.delete(
-    '/{uuid_}',
-    summary='Deletes task',
-    description='Deletes a task identified by its UUID',
+    '/{username}',
+    summary='Deletes user',
+    description='Deletes an user identified by its username',
 )
-async def remove_task(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
+async def remove_task(        
+        username: str,
+        db: DBSession = Depends(get_db),
+):
     try:
-        db.remove_task(uuid_)
+        db.remove_user(username)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
-            detail='Task not found',
+            detail='User not found',
         ) from exception
-
-
-@router.delete(
-    '',
-    summary='Deletes all tasks, use with caution',
-    description='Deletes all tasks, use with caution',
-)
-async def remove_all_tasks(db: DBSession = Depends(get_db)):
-    db.remove_all_tasks()
